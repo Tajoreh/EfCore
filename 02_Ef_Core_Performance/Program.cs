@@ -47,12 +47,17 @@ app.MapPut("increase-salary-sql", async (int companyId, DatabaseContext dbContex
     if (company is null)
         return Results.NotFound($"The company with id '{companyId}' was not found.");
 
+    await dbContext.Database.BeginTransactionAsync();
+    
     await dbContext.Database.ExecuteSqlInterpolatedAsync(
          $"UPDATE Employees SET Salary= Salary * 1.1 WHERE companyId={companyId}"
      );
 
     company.LastSalaryUpdateUtc = DateTime.UtcNow;
+
     await dbContext.SaveChangesAsync();
+
+    await dbContext.Database.CommitTransactionAsync();
 
     return Results.NoContent();
 });
