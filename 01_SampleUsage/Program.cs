@@ -28,7 +28,6 @@ var builder = WebApplication.CreateBuilder(args);
 //Method 2: Add Configurations to appsetting.json
 builder.Services.ConfigureOptions<DatabaseOptionSetup>();
 
-
 builder.Services.AddDbContext<DatabaseContext>(
    (serviceProvider, dbContextOptionBuilder) =>
    {
