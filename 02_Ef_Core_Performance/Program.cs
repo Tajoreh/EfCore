@@ -1,5 +1,7 @@
 using _02_Ef_Core_Performance.Entities;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,17 +43,41 @@ app.MapPut("increase-salary-sql", async (int companyId, DatabaseContext dbContex
 {
     var company = await dbContext
         .Set<Company>()
-        .AsNoTracking()
         .FirstOrDefaultAsync(c => c.Id == companyId);
 
     if (company is null)
         return Results.NotFound($"The company with id '{companyId}' was not found.");
 
     await dbContext.Database.BeginTransactionAsync();
-    
+
     await dbContext.Database.ExecuteSqlInterpolatedAsync(
          $"UPDATE Employees SET Salary= Salary * 1.1 WHERE companyId={companyId}"
      );
+
+    company.LastSalaryUpdateUtc = DateTime.UtcNow;
+
+    await dbContext.SaveChangesAsync();
+
+    await dbContext.Database.CommitTransactionAsync();
+
+    return Results.NoContent();
+});
+
+app.MapPut("increase-salary-dapper", async (int companyId, DatabaseContext dbContext) =>
+{
+    var company = await dbContext
+        .Set<Company>()
+        .FirstOrDefaultAsync(c => c.Id == companyId);
+
+    if (company is null)
+        return Results.NotFound($"The company with id '{companyId}' was not found.");
+
+    var transaction=await dbContext.Database.BeginTransactionAsync();
+
+    await dbContext.Database.GetDbConnection().ExecuteAsync(
+        $"UPDATE Employees SET Salary= Salary * 1.1 WHERE CompanyId=@CompanyId",
+        new { CompanyId = company.Id },
+        transaction.GetDbTransaction());
 
     company.LastSalaryUpdateUtc = DateTime.UtcNow;
 
