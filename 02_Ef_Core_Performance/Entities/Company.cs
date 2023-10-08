@@ -56,6 +56,7 @@ public class DatabaseContext : DbContext
                     CompanyId = 2
 
                 });
+            builder.HasData(employees);
         });
     }
 }

@@ -16,7 +16,7 @@ app.UseHttpsRedirection();
 
 
 //Method 1: it takes 1001 updates for each  employee and also company
-app.MapPut("increase-salary", async (int companyId, DatabaseContext dbContext) =>
+app.MapPut("increase-salary/{companyId:int}", async (int companyId, DatabaseContext dbContext) =>
 {
     var company = await dbContext
         .Set<Company>()
