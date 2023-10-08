@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var connectionString = builder.Configuration.GetConnectionString("Database");
 builder.Services.AddDbContext<DatabaseContext>(
-    o => o.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
+    optionsBuilder => optionsBuilder.UseSqlServer(connectionString,
+        //Method 2 of global query splitting
+        options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
 );
 
 var app = builder.Build();
@@ -20,6 +22,7 @@ app.MapPut("increase-salary/{companyId:int}", async (int companyId, DatabaseCont
 {
     var company = await dbContext
         .Set<Company>()
+        //Method 1 of query splitting != SingleQuery
         .AsSplitQuery()
         .Include(x => x.Employees)
         .AsNoTracking()
