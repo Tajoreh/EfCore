@@ -20,6 +20,7 @@ app.MapPut("increase-salary/{companyId:int}", async (int companyId, DatabaseCont
 {
     var company = await dbContext
         .Set<Company>()
+        .AsSplitQuery()
         .Include(x => x.Employees)
         .AsNoTracking()
         .FirstOrDefaultAsync(c => c.Id == companyId);
