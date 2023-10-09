@@ -12,5 +12,7 @@ public class CompanyMappings:IEntityTypeConfiguration<Company>
 
         builder.Property(x => x.Id).ValueGeneratedNever();
 
+        //Applies to all queries
+        builder.HasQueryFilter(x => !x.IsDeleted);
     }
 }
